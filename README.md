@@ -42,10 +42,9 @@ To use this server in LM Studio, add it to your MCP settings with the following 
     "file-writer": {
       "command": "node",
       "args": [
-        "C:/path/to/file-writer-mcp/dist/index.js",
+        "C:/Users/szpon/file_writer_mcp/dist/index.js",
         "--root",
-        "C:/your/data/directory",
-        "--backup"
+        "C:/your/default/directory"
       ]
     }
   }
@@ -54,20 +53,21 @@ To use this server in LM Studio, add it to your MCP settings with the following 
 
 ### Arguments
 
-- `--root <path>`: (Required) The absolute path to the directory where the server is permitted to write files.
-- `--overwrite`: (Optional) If enabled, the server will overwrite existing files by default.
-- `--backup`: (Optional) If enabled, the server will create numbered backups instead of appending or overwriting.
-
-Note: `--overwrite` and `--backup` are mutually exclusive. If neither is specified, the server defaults to appending data.
+- `--root <path>`: (Required) The absolute path to the default directory for relative file operations.
+- `--overwrite`: (Optional/Legacy) Provided for compatibility with older configs; ignored in favor of tool selection.
+- `--backup`: (Optional/Legacy) Provided for compatibility with older configs; ignored in favor of tool selection.
 
 ## Tool Usage
 
-### write_file
+The server provides three distinct tools to give you clear control over file handling directly from the LM Studio sidebar:
 
-The primary tool provided by this server.
+1. **`write_file`**: Use this for standard operations. It appends data to existing files or creates them if they do not exist.
+2. **`write_file_overwrite`**: Use this to completely replace an existing file with new data.
+3. **`write_file_backup`**: Use this to save data while preserving the original. If the file exists, it creates a numbered backup (e.g., `data.1.csv`).
 
-**Arguments:**
-- `path` (string): The relative path and filename within the root directory.
+### Tool Arguments
+
+- `path` (string): The filename or **full absolute path**. If a relative path is provided, it resolves against the `--root` directory. If an absolute path is provided, the server writes directly to that location.
 - `format` (string): The desired file extension (`txt`, `md`, `csv`, or `xlsx`).
 - `data` (object):
   - `headers` (string[]): Column names for table formats.
