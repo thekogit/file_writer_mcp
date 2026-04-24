@@ -10,8 +10,6 @@ program
   .name('file-writer-mcp')
   .description('MCP server for writing files')
   .requiredOption('--root <path>', 'Root directory for file operations')
-  .option('--overwrite', 'Set default overwrite mode', false)
-  .option('--backup', 'Set default backup mode', false)
   .action(async (options) => {
     const rootPath = path.resolve(options.root);
     if (!fs.existsSync(rootPath)) {
@@ -20,8 +18,8 @@ program
 
     const server = new FileWriterServer({
       root: rootPath,
-      overwrite: options.overwrite,
-      backup: options.backup
+      overwrite: false,
+      backup: false
     });
 
     await server.run();

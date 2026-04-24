@@ -31,46 +31,33 @@ export class FileWriterServer {
       tools: [
         {
           name: 'write_file',
-          description: 'Write data to a file in TXT, MD, CSV, or XLSX format.',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              path: { type: 'string', description: 'Relative path to file' },
-              format: { type: 'string', enum: ['txt', 'md', 'csv', 'xlsx'] },
-              overwrite: { type: 'boolean', description: 'Completely replace the file if it exists', default: false },
-              backup: { type: 'boolean', description: 'Create a numbered backup (e.g. file.1.csv) if it exists', default: false },
-              data: {
-                type: 'object',
-                properties: {
-                  headers: { type: 'array', items: { type: 'string' } },
-                  rows: { type: 'array', items: { type: 'array' } },
-                  content: { type: 'string' }
-                }
-              }
-            },
-            required: ['path', 'format', 'data']
-          }
+          description: 'Append data to a file. Create it if it doesn\'t exist.',
+          inputSchema: this.getToolSchema()
+        },
+        {
+          name: 'write_file_overwrite',
+          description: 'Write data to a file, COMPLETELY REPLACING it if it exists.',
+          inputSchema: this.getToolSchema()
+        },
+        {
+          name: 'write_file_backup',
+          description: 'Write data to a file. If it exists, create a numbered backup (e.g., file.1.csv).',
+          inputSchema: this.getToolSchema()
         }
       ]
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      if (request.params.name !== 'write_file') throw new Error('Tool not found');
-
-      const { path: relPath, format, data, overwrite, backup } = request.params.arguments as any;
+      const { path: relPath, format, data } = request.params.arguments as any;
       const fullPath = resolveSafePath(this.rootDir, relPath);
-
-      // Use tool-level argument if provided, otherwise fallback to server-level config
-      const finalOverwrite = overwrite !== undefined ? overwrite : this.overwrite;
-      const finalBackup = backup !== undefined ? backup : this.backup;
-
-      if (finalOverwrite && finalBackup) {
-        return { content: [{ type: 'text', text: 'Error: Cannot use both overwrite and backup at the same time.' }], isError: true };
-      }
+      
+      const options = {
+        overwrite: request.params.name === 'write_file_overwrite',
+        backup: request.params.name === 'write_file_backup'
+      };
 
       try {
         let message: string;
-        const options = { overwrite: finalOverwrite, backup: finalBackup };
         if (format === 'xlsx') {
           message = await writeExcelFile(fullPath, data, options);
         } else {
@@ -81,6 +68,25 @@ export class FileWriterServer {
         return { content: [{ type: 'text', text: `Error: ${error.message}` }], isError: true };
       }
     });
+  }
+
+  private getToolSchema() {
+    return {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: 'Relative path to file' },
+        format: { type: 'string', enum: ['txt', 'md', 'csv', 'xlsx'] },
+        data: {
+          type: 'object',
+          properties: {
+            headers: { type: 'array', items: { type: 'string' } },
+            rows: { type: 'array', items: { type: 'array' } },
+            content: { type: 'string' }
+          }
+        }
+      },
+      required: ['path', 'format', 'data']
+    };
   }
 
   async run() {
