@@ -37,6 +37,8 @@ export class FileWriterServer {
             properties: {
               path: { type: 'string', description: 'Relative path to file' },
               format: { type: 'string', enum: ['txt', 'md', 'csv', 'xlsx'] },
+              overwrite: { type: 'boolean', description: 'Completely replace the file if it exists', default: false },
+              backup: { type: 'boolean', description: 'Create a numbered backup (e.g. file.1.csv) if it exists', default: false },
               data: {
                 type: 'object',
                 properties: {
@@ -55,15 +57,20 @@ export class FileWriterServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       if (request.params.name !== 'write_file') throw new Error('Tool not found');
 
-      const { path: relPath, format, data } = request.params.arguments as any;
+      const { path: relPath, format, data, overwrite, backup } = request.params.arguments as any;
       const fullPath = resolveSafePath(this.rootDir, relPath);
+
+      if (overwrite && backup) {
+        return { content: [{ type: 'text', text: 'Error: Cannot use both overwrite and backup at the same time.' }], isError: true };
+      }
 
       try {
         let message: string;
+        const options = { overwrite: overwrite || false, backup: backup || false };
         if (format === 'xlsx') {
-          message = await writeExcelFile(fullPath, data, { overwrite: this.overwrite, backup: this.backup });
+          message = await writeExcelFile(fullPath, data, options);
         } else {
-          message = await writeTextFile(fullPath, format, data, { overwrite: this.overwrite, backup: this.backup });
+          message = await writeTextFile(fullPath, format, data, options);
         }
         return { content: [{ type: 'text', text: message }] };
       } catch (error: any) {
