@@ -21,9 +21,10 @@ export function toCSV(data: TableData, includeHeaders = true): string {
 }
 
 export function toMarkdown(data: TableData): string {
-  const headers = `| ${data.headers.join(' | ')} |`;
+  const escapeMD = (val: any) => String(val).replace(/\|/g, '\\|');
+  const headers = `| ${data.headers.map(escapeMD).join(' | ')} |`;
   const separator = `| ${data.headers.map(() => '---').join(' | ')} |`;
-  const rows = data.rows.map(row => `| ${row.join(' | ')} |`).join('\n');
+  const rows = data.rows.map(row => `| ${row.map(escapeMD).join(' | ')} |`).join('\n');
   return [headers, separator, rows].join('\n');
 }
 

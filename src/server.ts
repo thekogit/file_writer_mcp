@@ -43,8 +43,7 @@ export class FileWriterServer {
                   headers: { type: 'array', items: { type: 'string' } },
                   rows: { type: 'array', items: { type: 'array' } },
                   content: { type: 'string' }
-                },
-                required: ['headers', 'rows']
+                }
               }
             },
             required: ['path', 'format', 'data']
