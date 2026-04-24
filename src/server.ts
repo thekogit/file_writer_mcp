@@ -74,7 +74,10 @@ export class FileWriterServer {
     return {
       type: 'object',
       properties: {
-        path: { type: 'string', description: 'Relative path to file' },
+        path: { 
+          type: 'string', 
+          description: 'The filename or full absolute path. If relative, it saves to the default root. If absolute, it saves to that exact location.' 
+        },
         format: { type: 'string', enum: ['txt', 'md', 'csv', 'xlsx'] },
         data: {
           type: 'object',
