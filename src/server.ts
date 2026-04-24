@@ -60,13 +60,17 @@ export class FileWriterServer {
       const { path: relPath, format, data, overwrite, backup } = request.params.arguments as any;
       const fullPath = resolveSafePath(this.rootDir, relPath);
 
-      if (overwrite && backup) {
+      // Use tool-level argument if provided, otherwise fallback to server-level config
+      const finalOverwrite = overwrite !== undefined ? overwrite : this.overwrite;
+      const finalBackup = backup !== undefined ? backup : this.backup;
+
+      if (finalOverwrite && finalBackup) {
         return { content: [{ type: 'text', text: 'Error: Cannot use both overwrite and backup at the same time.' }], isError: true };
       }
 
       try {
         let message: string;
-        const options = { overwrite: overwrite || false, backup: backup || false };
+        const options = { overwrite: finalOverwrite, backup: finalBackup };
         if (format === 'xlsx') {
           message = await writeExcelFile(fullPath, data, options);
         } else {
