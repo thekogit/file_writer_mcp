@@ -10,6 +10,8 @@ program
   .name('file-writer-mcp')
   .description('MCP server for writing files')
   .requiredOption('--root <path>', 'Root directory for file operations')
+  .option('--overwrite', 'Ignored (logic handled by tool choice)', false)
+  .option('--backup', 'Ignored (logic handled by tool choice)', false)
   .action(async (options) => {
     const rootPath = path.resolve(options.root);
     if (!fs.existsSync(rootPath)) {
